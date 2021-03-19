@@ -11,7 +11,7 @@ class CreateSubscriptionsTable extends Migration
         Schema::create('subscriptions', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->unsignedBigInteger('product_id');
-            $table->unsignedBigInteger('original_transaction_id');
+            $table->unsignedBigInteger('original_transaction_id')->unique();
 
             $table->string('status');
             $table->timestamp('purchase_date');

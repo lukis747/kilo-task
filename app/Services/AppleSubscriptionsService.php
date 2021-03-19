@@ -7,35 +7,33 @@ use App\Models\Subscription;
 use App\Models\Transaction;
 use Illuminate\Support\Collection;
 
-class AppleService implements SubscriptionServiceInterface
+class AppleSubscriptionsService implements SubscriptionServiceInterface
 {
     private $payload;
+    private $subscriptionService;
 
     public function __construct($payload)
     {
         $this->payload = $payload;
+        $this->subscriptionService = new SubscriptionsService();
     }
 
     public function process()
     {
         switch ($this->payload->notification_type) {
             case 'INITIAL_BUY':
-                dump("INITIAL_BUY");
                 $this->subscribe();
                 break;
 
             case 'DID_RENEW':
-                dump("DID_RENEW");
                 $this->extendSubscription();
                 break;
 
-            case 'DID_FAIL_TO_RENEW':
-                dump("DID_FAIL_TO_RENEW");
+            case 'DID_FAIL_TO_RENEW':;
                 $this->failedToExtend();
                 break;
 
             case 'CANCEL':
-                dump("CANCEL");
                 $this->unsubscribe();
                 break;
 
@@ -51,50 +49,38 @@ class AppleService implements SubscriptionServiceInterface
     {
         $receipt = $this->payload->unified_receipt->latest_receipt_info;
 
-        $subscription = new Subscription();
-        $subscription->product_id = $receipt->product_id;
-        $subscription->original_transaction_id = $receipt->original_transaction_id;
-        $subscription->status = Subscription::ACTIVE;
-        $subscription->purchase_date = $receipt->purchase_date;
-        $subscription->expires_date = $receipt->expires_date;
-        $subscription->save();
+        $this->subscriptionService->subscribe(
+            $receipt->product_id,
+            $receipt->original_transaction_id,
+            $receipt->purchase_date,
+            $receipt->expires_date);
    }
 
     public function extendSubscription()
     {
         $receipt = $this->payload->unified_receipt->latest_receipt_info;
-        $subscription = Subscription::where('original_transaction_id', $receipt->original_transaction_id)
-            ->firstOrFail();
 
-        $subscription->status = Subscription::ACTIVE;
-        $subscription->expires_date = $receipt->expires_date;
-        $subscription->cancellation_date = null;
-        $subscription->cancellation_reason = null;
-        $subscription->save();
+        $this->subscriptionService->extendSubscription(
+            $receipt->original_transaction_id,
+            $receipt->expires_date
+        );
     }
 
     public function failedToExtend()
     {
         $receipt = $this->payload->unified_receipt->latest_receipt_info;
-        $subscription = Subscription::where('original_transaction_id', $receipt->original_transaction_id)
-            ->firstOrFail();
 
-        $subscription->status = Subscription::FAILED_TO_EXTEND;
-        $subscription->cancellation_date = null;
-        $subscription->cancellation_reason = null;
-        $subscription->save();
+        $this->subscriptionService->failedToExtend($receipt->original_transaction_id);
     }
 
     public function unsubscribe()
     {
         $receipt = $this->payload->unified_receipt->latest_receipt_info;
-        $subscription = Subscription::where('original_transaction_id', $receipt->original_transaction_id)
-            ->firstOrFail();
 
-        $subscription->status = Subscription::CANCELED;
-        $subscription->cancellation_date = $receipt->cancellation_date;
-        $subscription->cancellation_reason = $receipt->cancellation_reason;
-        $subscription->save();
+        $this->subscriptionService->unsubscribe(
+            $receipt->original_transaction_id,
+            $receipt->cancellation_date,
+            $receipt->cancellation_reason);
     }
 
     public function saveTransaction(){

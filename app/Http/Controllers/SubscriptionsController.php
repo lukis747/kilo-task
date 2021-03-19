@@ -2,8 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\NotificationRequest;
-use App\Services\AppleService;
+use App\Services\AppleSubscriptionsService;
 use Symfony\Component\HttpFoundation\Request;
 
 class SubscriptionsController extends Controller
@@ -12,15 +11,23 @@ class SubscriptionsController extends Controller
     {
         // TODO Dynamic validation
 
+        $data = json_decode(json_encode($request->all(),FALSE));
+
         switch ($provider){
-            case 'paypal':
-                $provider  = new AppleService(json_decode(json_encode($request->all(),FALSE)));
+            case 'apple':
+                $provider  = new AppleSubscriptionsService($data);
                 break;
 
             default:
                 return response(['error'=> 'Provider not found'],404);
         }
+//
+//        $providers = [
+//            'apple' => AppleSubscriptionsService::class
+///      ];
+//
+//        $provider = $providers[$provider];
 
-        return $provider->process();
+        $provider->process();
     }
 }
