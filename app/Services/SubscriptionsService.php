@@ -5,7 +5,6 @@ namespace App\Services;
 
 
 use App\Models\Subscription;
-use Illuminate\Support\Collection;
 
 class SubscriptionsService
 {

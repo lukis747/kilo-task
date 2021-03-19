@@ -3,9 +3,7 @@
 
 namespace App\Services;
 
-use App\Models\Subscription;
 use App\Models\Transaction;
-use Illuminate\Support\Collection;
 
 class AppleSubscriptionsService implements SubscriptionServiceInterface
 {

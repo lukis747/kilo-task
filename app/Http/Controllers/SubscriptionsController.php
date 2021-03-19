@@ -21,12 +21,6 @@ class SubscriptionsController extends Controller
             default:
                 return response(['error'=> 'Provider not found'],404);
         }
-//
-//        $providers = [
-//            'apple' => AppleSubscriptionsService::class
-///      ];
-//
-//        $provider = $providers[$provider];
 
         $provider->process();
     }
