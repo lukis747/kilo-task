@@ -1,62 +1,57 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400"></a></p>
+#Apple Web Hooks implementation
+###Kilo Test day task
 
-<p align="center">
-<a href="https://travis-ci.org/laravel/framework"><img src="https://travis-ci.org/laravel/framework.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Using your preferred Framework (Laravel / Lumen / Symfony)
+Create backend  logic that handles 3rd party payment provider's "Apple In App purchases" webhook notifications and manages our business subscription logic: (Creates transaction entries, gives or revokes access from Application, Updates subscription entry with latest information.)
 
-## About Laravel
+**Documentation:**  https://developer.apple.com/documentation/appstoreservernotifications
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+Business logic should handle these actions:
+1. Initial subscription [INITIAL_BUY]
+2. Renewed subscription [DID_RENEW]
+3. Unsuccessful renewal [DID_FAIL_TO_RENEW]
+4. Cancel subscription [CANCEL]
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+*Business side subscription logic should be agnostic (decoupled) from specific Payment Service Provider (PSP) and reusable with many other PSP’s that could be implemented later on (Stripe, Braintree, Paypal).
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+1) Estimation. Please spend the first hour researching documentation, creating overall architecture and providing us with full estimation of the task. (1 hour)
+2) Create a main implementation of webhook logic - skeleton of code structure with  specific comments on overall logic and code that should be written later on to complete the task. (2 hours)
+3) Lunch time. Let's go grab lunch with a couple team members and chit-chat.
+4) Based on estimation complete the task while covering part's that couldn't be completed with comments.  (∞ hours)
+5) Final review (Let's discuss your code and strategy used to complete the task).
 
-## Learning Laravel
+Do not hesitate to ask questions or communicate during test day. It's a real life task and any resources possible should be used to complete the task as fast as possible.
+If you feel hungry or thirsty - grab a snack/drink from the kitchen, (ask a colleague where to find it). 
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains over 1500 video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+---
+Endpoint: `/api/v1/subscriptions/{provider}`
 
-## Laravel Sponsors
+POST request: `/api/v1/subscriptions/apple`
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](https://patreon.com/taylorotwell).
+Body:
 
-### Premium Partners
+```json
+{
+    "notification_type":"DID_RENEW",
+    "unified_receipt":{
+        "latest_receipt_info":{
+            "purchase_date":"2021-03-19",
+            "cancellation_date":"",
+            "cancellation_reason":"",
+            "expires_date":"2021-10-19",
+            "product_id":7788,
+            "transaction_id":12222222,
+            "original_transaction_id":12254444
+        }
+    }
+}
+```
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Cubet Techno Labs](https://cubettech.com)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[Many](https://www.many.co.uk)**
-- **[Webdock, Fast VPS Hosting](https://www.webdock.io/en)**
-- **[DevSquad](https://devsquad.com)**
-- **[Curotec](https://www.curotec.com/)**
-- **[OP.GG](https://op.gg)**
+Available parameters for _**notification_type**_: 
+- INITIAL_BUY
+- DID_RENEW
+- DID_FAIL_TO_RENEW
+- CANCEL
 
-## Contributing
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
-
-## Code of Conduct
-
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
