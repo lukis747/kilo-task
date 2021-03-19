@@ -20,18 +20,22 @@ class AppleService implements SubscriptionServiceInterface
     {
         switch ($this->payload->notification_type) {
             case 'INITIAL_BUY':
+                dump("INITIAL_BUY");
                 $this->subscribe();
                 break;
 
             case 'DID_RENEW':
+                dump("DID_RENEW");
                 $this->extendSubscription();
                 break;
 
             case 'DID_FAIL_TO_RENEW':
+                dump("DID_FAIL_TO_RENEW");
                 $this->failedToExtend();
                 break;
 
             case 'CANCEL':
+                dump("CANCEL");
                 $this->unsubscribe();
                 break;
 
@@ -64,6 +68,8 @@ class AppleService implements SubscriptionServiceInterface
 
         $subscription->status = Subscription::ACTIVE;
         $subscription->expires_date = $receipt->expires_date;
+        $subscription->cancellation_date = null;
+        $subscription->cancellation_reason = null;
         $subscription->save();
     }
 
@@ -74,6 +80,8 @@ class AppleService implements SubscriptionServiceInterface
             ->firstOrFail();
 
         $subscription->status = Subscription::FAILED_TO_EXTEND;
+        $subscription->cancellation_date = null;
+        $subscription->cancellation_reason = null;
         $subscription->save();
     }
 
@@ -84,6 +92,8 @@ class AppleService implements SubscriptionServiceInterface
             ->firstOrFail();
 
         $subscription->status = Subscription::CANCELED;
+        $subscription->cancellation_date = $receipt->cancellation_date;
+        $subscription->cancellation_reason = $receipt->cancellation_reason;
         $subscription->save();
     }
 
@@ -98,7 +108,4 @@ class AppleService implements SubscriptionServiceInterface
         $transaction->notification_type = $notificationType;
         $transaction->save();
     }
-
-
-
 }
