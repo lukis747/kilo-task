@@ -4,45 +4,32 @@
 namespace App\Services;
 
 
-use App\Models\Subscription;
+use App\Contracts\SubscriptionGatewayInterface;
+use Exception;
+use Illuminate\Http\Request;
 
 class SubscriptionsService
 {
-    public function subscribe($product_id,$transaction_id,$purchase_data,$expiration_date){
-        $subscription = new Subscription();
-        $subscription->product_id = $product_id;
-        $subscription->original_transaction_id = $transaction_id;
-        $subscription->status = Subscription::ACTIVE;
-        $subscription->purchase_date = $purchase_data;
-        $subscription->expires_date = $expiration_date;
-        $subscription->save();
-    }
-    public function extendSubscription($transaction_id,$expiration_date){
-        $subscription = Subscription::where('original_transaction_id', $transaction_id)
-            ->firstOrFail();
-        $subscription->status = Subscription::ACTIVE;
-        $subscription->expires_date = $expiration_date;
-        $subscription->cancellation_date = null;
-        $subscription->cancellation_reason = null;
-        $subscription->save();
-    }
-    public function failedToExtend($transaction_id)
+    private SubscriptionGatewayInterface $subscriptionGateway;
+
+    /**
+     * @throws Exception
+     */
+    public function initialize(string $gateway, Request $request): void
     {
-        $subscription = Subscription::where('original_transaction_id', $transaction_id)
-            ->firstOrFail();
+        $subscriptionGatewayClass = config("subscription.$gateway.class");
 
-        $subscription->status = Subscription::FAILED_TO_EXTEND;
-        $subscription->cancellation_date = null;
-        $subscription->cancellation_reason = null;
-        $subscription->save();
+        try {
+            $this->subscriptionGateway = new $subscriptionGatewayClass();
+            $this->subscriptionGateway->setData($request);
+        } catch (Exception $exception) {
+            throw new Exception("Subscription gateway initialization failed");
+        }
+
     }
-    public function unsubscribe($transaction_id,$cancellation_date,$cancellation_reason){
-        $subscription = Subscription::where('original_transaction_id', $transaction_id)
-            ->firstOrFail();
 
-        $subscription->status = Subscription::CANCELED;
-        $subscription->cancellation_date = $cancellation_date;
-        $subscription->cancellation_reason = $cancellation_reason;
-        $subscription->save();
+    public function process(): void
+    {
+        $this->subscriptionGateway->process();
     }
 }

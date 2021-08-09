@@ -16,8 +16,8 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::prefix('v1')->group(function (){
-    Route::prefix('subscriptions')->group(function (){
-        Route::post('{provider}',[SubscriptionsController::class,'process']) ;
+    Route::prefix('gateways/{gateway}')->group(function (){
+        Route::post('subscription-notifications',[SubscriptionsController::class,'process']) ;
     });
 });
 

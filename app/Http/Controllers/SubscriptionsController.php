@@ -2,26 +2,18 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\AppleSubscriptionsService;
-use Symfony\Component\HttpFoundation\Request;
+use App\Services\SubscriptionsService;
+use Exception;
+use Illuminate\Http\Request;
 
 class SubscriptionsController extends Controller
 {
-    public function process($provider,Request $request)
+    /**
+     * @throws Exception
+     */
+    public function process(string $gateway, Request $request, SubscriptionsService $subscriptionsService): void
     {
-        // TODO Dynamic validation
-
-        $data = json_decode(json_encode($request->all(),FALSE));
-
-        switch ($provider){
-            case 'apple':
-                $provider  = new AppleSubscriptionsService($data);
-                break;
-
-            default:
-                return response(['error'=> 'Provider not found'],404);
-        }
-
-        $provider->process();
+        $subscriptionsService->initialize($gateway, $request);
+        $subscriptionsService->process();
     }
 }
