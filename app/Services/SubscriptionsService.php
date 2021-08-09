@@ -32,4 +32,9 @@ class SubscriptionsService
     {
         $this->subscriptionGateway->process();
     }
+
+    public function getSubscriptionGateway(): SubscriptionGatewayInterface
+    {
+        return $this->subscriptionGateway;
+    }
 }
